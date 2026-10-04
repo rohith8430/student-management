@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Student - Student Management System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                🎓 <span>EduManage</span> Portal
+            </a>
+            <ul class="nav-links">
+                <li class="nav-item"><a href="/" class="active">👨‍🎓 Students</a></li>
+                <li class="nav-item"><a href="/attendance">📅 Attendance</a></li>
+                <li class="nav-item"><a href="/marks">📊 Marks</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 650px;">
+
+        <div style="margin-bottom: 20px;">
+            <a href="/" class="back-link">← Back to Student List</a>
+        </div>
+
+        <div class="card">
+            <h1>✏️ Edit Student Profile</h1>
+            <p class="subtitle">Modify details for student <strong>#{{ student[0] }} - {{ student[1] }}</strong></p>
+
+            <form action="/edit/{{ student[0] }}" method="POST">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="name">Student Name</label>
+                    <input type="text" id="name" name="name" value="{{ student[1] }}" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" name="age" value="{{ student[2] }}" min="1" max="100" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="course">Course</label>
+                    <input type="text" id="course" name="course" value="{{ student[3] }}" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" value="{{ student[4] }}" required>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button type="submit" style="flex: 1;">💾 Update Student</button>
+                    <a href="/" class="btn btn-secondary" style="text-decoration: none;">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+</body>
+</html>

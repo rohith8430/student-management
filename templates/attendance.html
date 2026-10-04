@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance - Student Management System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                🎓 <span>EduManage</span> Portal
+            </a>
+            <ul class="nav-links">
+                <li class="nav-item"><a href="/">👨‍🎓 Students</a></li>
+                <li class="nav-item"><a href="/attendance" class="active">📅 Attendance</a></li>
+                <li class="nav-item"><a href="/marks">📊 Marks</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- Status Alerts -->
+        {% if saved %}
+        <div class="alert-success">
+            ✅ Attendance successfully saved for <strong>{{ selected_date }}</strong>!
+        </div>
+        {% endif %}
+
+        <!-- Header -->
+        <div>
+            <h1>📅 Student Attendance Management</h1>
+            <p class="subtitle">Record daily attendance, review past sessions, and track cumulative student percentages</p>
+        </div>
+
+        <!-- Date Selection Controls -->
+        <div class="card" style="padding: 20px 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                <form method="GET" action="/attendance" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <label for="att-date" style="font-size: 1rem;"><strong>Select Date:</strong></label>
+                    <input type="date" id="att-date" name="date" value="{{ selected_date }}" style="width: auto; font-size: 1rem; padding: 8px 12px;" onchange="this.form.submit()">
+                    <button type="submit" class="btn btn-outline btn-sm">📅 View Date</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="setToday()">Today</button>
+                </form>
+
+                {% if recorded_dates %}
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span style="font-size: 0.88rem; color: var(--text-muted); font-weight: 500;">Jump to Recorded Date:</span>
+                    <select onchange="if(this.value) window.location.href='/attendance?date=' + this.value" style="width: auto; padding: 6px 10px; font-size: 0.88rem;">
+                        <option value="">-- Choose Date --</option>
+                        {% for rdate in recorded_dates %}
+                        <option value="{{ rdate }}" {% if rdate == selected_date %}selected{% endif %}>{{ rdate }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Mark Daily Attendance Card -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                <div>
+                    <h2>📝 Mark Attendance for <span style="color: var(--primary);">{{ selected_date }}</span></h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        Choose Present or Absent for each student, then click Save Attendance.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="markAll('Present')">✅ Mark All Present</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="markAll('Absent')">❌ Mark All Absent</button>
+                </div>
+            </div>
+
+            <form action="/attendance" method="POST">
+                <input type="hidden" name="date" value="{{ selected_date }}">
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">ID</th>
+                                <th>Student Name</th>
+                                <th>Course</th>
+                                <th style="text-align: center; width: 260px;">Attendance Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in attendance_records %}
+                            <tr>
+                                <td><strong>#{{ student.id }}</strong></td>
+                                <td>
+                                    <strong>{{ student.name }}</strong>
+                                    {% if student.has_record %}
+                                        <span style="font-size: 0.75rem; color: #64748b; margin-left: 6px;">(Saved)</span>
+                                    {% else %}
+                                        <span style="font-size: 0.75rem; color: #d97706; margin-left: 6px;">(Not yet marked)</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge badge-course">{{ student.course }}</span></td>
+                                <td style="text-align: center;">
+                                    <div class="status-radio-group">
+                                        <label class="radio-label">
+                                            <input type="radio" name="status_{{ student.id }}" value="Present" {% if student.status == 'Present' %}checked{% endif %}>
+                                            Present
+                                        </label>
+                                        <label class="radio-label">
+                                            <input type="radio" name="status_{{ student.id }}" value="Absent" {% if student.status == 'Absent' %}checked{% endif %}>
+                                            Absent
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 30px; color: #64748b;">
+                                    No students available. Please add students first on the <a href="/">Students</a> page.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if attendance_records %}
+                <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                    <button type="submit">💾 Save Attendance for {{ selected_date }}</button>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Cumulative Attendance Statistics Card -->
+        <div class="card">
+            <h2>📈 Cumulative Attendance Percentage & Summary</h2>
+            <p class="subtitle">Overall attendance statistics calculated across all recorded dates</p>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Student Name</th>
+                            <th>Course</th>
+                            <th>Total Classes</th>
+                            <th>Present</th>
+                            <th>Absent</th>
+                            <th>Attendance %</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in student_stats %}
+                        <tr>
+                            <td><strong>#{{ stat.id }}</strong></td>
+                            <td><strong>{{ stat.name }}</strong></td>
+                            <td><span class="badge badge-course">{{ stat.course }}</span></td>
+                            <td>{{ stat.total }}</td>
+                            <td><span class="badge badge-present">{{ stat.present }} Days</span></td>
+                            <td><span class="badge badge-absent">{{ stat.absent }} Days</span></td>
+                            <td>
+                                <strong style="font-size: 1.05rem;">{{ stat.percentage }}%</strong>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar-fill {% if stat.percentage >= 75 %}fill-good{% elif stat.percentage >= 60 %}fill-warning{% else %}fill-danger{% endif %}" style="width: {{ stat.percentage }}%;"></div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if stat.total == 0 %}
+                                    <span class="badge" style="background: #f1f5f9; color: #64748b;">No Records</span>
+                                {% elif stat.percentage >= 75 %}
+                                    <span class="badge badge-present">✓ Eligible</span>
+                                {% else %}
+                                    <span class="badge badge-absent">⚠️ Low (&lt;75%)</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 25px; color: #64748b;">
+                                No attendance records recorded yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function setToday() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('att-date').value = today;
+            window.location.href = '/attendance?date=' + today;
+        }
+
+        function markAll(status) {
+            const radios = document.querySelectorAll(`input[type="radio"][value="${status}"]`);
+            radios.forEach(radio => radio.checked = true);
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Marks - Student Management System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                🎓 <span>EduManage</span> Portal
+            </a>
+            <ul class="nav-links">
+                <li class="nav-item"><a href="/">👨‍🎓 Students</a></li>
+                <li class="nav-item"><a href="/attendance">📅 Attendance</a></li>
+                <li class="nav-item"><a href="/marks" class="active">📊 Marks</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 650px;">
+
+        <div style="margin-bottom: 20px;">
+            <a href="/marks" class="back-link">← Back to Marks Sheet</a>
+        </div>
+
+        <div class="card">
+            <h1>📝 Record / Edit Student Marks</h1>
+            <p class="subtitle">
+                Student: <strong>{{ student[1] }}</strong> (ID: #{{ student[0] }} | Course: {{ student[3] }})
+            </p>
+
+            <form action="/marks/edit/{{ student[0] }}" method="POST">
+                {% for sub in subjects %}
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label for="sub_{{ loop.index }}"><strong>{{ sub }}</strong></label>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Max: 100 Marks</span>
+                    </div>
+                    <input type="number"
+                           id="sub_{{ loop.index }}"
+                           class="mark-input"
+                           name="{{ sub }}"
+                           placeholder="Enter score between 0 and 100"
+                           min="0"
+                           max="100"
+                           step="any"
+                           value="{{ current_marks.get(sub, '') }}"
+                           oninput="calcSummary()">
+                </div>
+                {% endfor %}
+
+                <!-- Dynamic Live Calculation Card -->
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin: 10px 0 20px;">
+                    <div style="display: flex; justify-content: space-around; text-align: center;">
+                        <div>
+                            <span style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase;">Total Score</span>
+                            <div id="live-total" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">-- / 400</div>
+                        </div>
+                        <div style="border-left: 1px solid var(--border-color);"></div>
+                        <div>
+                            <span style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase;">Percentage</span>
+                            <div id="live-pct" style="font-size: 1.5rem; font-weight: 700; color: var(--text-dark);">-- %</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button type="submit" style="flex: 1;">💾 Save Marks</button>
+                    <a href="/marks" class="btn btn-secondary" style="text-decoration: none;">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        function calcSummary() {
+            const inputs = document.querySelectorAll('.mark-input');
+            let total = 0;
+            let count = 0;
+
+            inputs.forEach(input => {
+                const val = parseFloat(input.value);
+                if (!isNaN(val)) {
+                    total += val;
+                    count++;
+                }
+            });
+
+            if (count > 0) {
+                const maxMarks = inputs.length * 100;
+                const pct = ((total / (count * 100)) * 100).toFixed(1);
+                document.getElementById('live-total').innerText = total.toFixed(1) + ' / ' + (count * 100);
+                document.getElementById('live-pct').innerText = pct + '%';
+            } else {
+                document.getElementById('live-total').innerText = '-- / 400';
+                document.getElementById('live-pct').innerText = '-- %';
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', calcSummary);
+    </script>
+
+</body>
+</html>

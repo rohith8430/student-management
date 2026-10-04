@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marks - Student Management System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                🎓 <span>EduManage</span> Portal
+            </a>
+            <ul class="nav-links">
+                <li class="nav-item"><a href="/">👨‍🎓 Students</a></li>
+                <li class="nav-item"><a href="/attendance">📅 Attendance</a></li>
+                <li class="nav-item"><a href="/marks" class="active">📊 Marks</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- Status Alerts -->
+        {% if saved %}
+        <div class="alert-success">
+            ✅ Student marks updated and saved successfully!
+        </div>
+        {% endif %}
+
+        <!-- Header -->
+        <div>
+            <h1>📊 Academic Marks & Performance</h1>
+            <p class="subtitle">Record subject scores, review totals, and evaluate student grades</p>
+        </div>
+
+        <!-- Metric Stat Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <strong>Total Students</strong>
+                    <span>{{ students|length }}</span>
+                </div>
+                <div class="stat-icon">👨‍🎓</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-info">
+                    <strong>Class Average</strong>
+                    <span>{{ class_avg }}%</span>
+                </div>
+                <div class="stat-icon">📈</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-info">
+                    <strong>Top Score</strong>
+                    <span>{{ highest_score }}%</span>
+                </div>
+                <div class="stat-icon">🏆</div>
+            </div>
+        </div>
+
+        <!-- Marks Table Card -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                <h2>📋 Student Marks Sheet</h2>
+                <div style="flex: 1; max-width: 320px;">
+                    <input type="text" id="marks-search" placeholder="🔍 Search student marks...">
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Student Name</th>
+                            <th>Course</th>
+                            {% for sub in subjects %}
+                            <th style="text-align: center;">{{ sub }}<br><small style="color: #64748b; font-weight: normal;">(100)</small></th>
+                            {% endfor %}
+                            <th style="text-align: center;">Total<br><small style="color: #64748b; font-weight: normal;">(400)</small></th>
+                            <th style="text-align: center;">Percentage</th>
+                            <th style="text-align: center;">Grade</th>
+                            <th style="text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td><strong>#{{ student.id }}</strong></td>
+                            <td>
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                    <strong>{{ student.name }}</strong>
+                                    <a href="/marks/edit/{{ student.id }}" class="edit-link" style="font-size: 0.8rem; white-space: nowrap;" title="Edit marks for {{ student.name }}">
+                                        ✏️ Edit Marks
+                                    </a>
+                                </div>
+                            </td>
+                            <td><span class="badge badge-course">{{ student.course }}</span></td>
+
+                            {% for sub in subjects %}
+                            <td style="text-align: center;">
+                                {% if student.scores.get(sub) is not none %}
+                                    <strong>{{ student.scores.get(sub) }}</strong>
+                                {% else %}
+                                    <span style="color: #94a3b8;">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+
+                            <td style="text-align: center;">
+                                {% if student.total is not none %}
+                                    <strong>{{ student.total }}</strong>
+                                {% else %}
+                                    <span style="color: #94a3b8;">-</span>
+                                {% endif %}
+                            </td>
+
+                            <td style="text-align: center;">
+                                {% if student.percentage is not none %}
+                                    <strong>{{ student.percentage }}%</strong>
+                                {% else %}
+                                    <span style="color: #94a3b8;">-</span>
+                                {% endif %}
+                            </td>
+
+                            <td style="text-align: center;">
+                                {% if student.grade == 'A+' or student.grade == 'A' %}
+                                    <span class="badge badge-grade">{{ student.grade }} ({{ student.status }})</span>
+                                {% elif student.grade == 'B' or student.grade == 'C' or student.grade == 'D' %}
+                                    <span class="badge badge-present">{{ student.grade }} ({{ student.status }})</span>
+                                {% elif student.grade == 'F' %}
+                                    <span class="badge badge-absent">{{ student.grade }} ({{ student.status }})</span>
+                                {% else %}
+                                    <span class="badge" style="background: #f1f5f9; color: #64748b;">Pending</span>
+                                {% endif %}
+                            </td>
+
+                            <td style="text-align: center;">
+                                <a href="/marks/edit/{{ student.id }}" class="btn btn-outline btn-sm">
+                                    {% if student.has_marks %}
+                                    ✏️ Edit Marks
+                                    {% else %}
+                                    ➕ Add Marks
+                                    {% endif %}
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="{{ 6 + subjects|length }}" style="text-align: center; padding: 30px; color: #64748b;">
+                                No students found. Please add students first on the <a href="/">Students</a> page.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.getElementById("marks-search").addEventListener("keyup", function() {
+            let searchText = this.value.toLowerCase();
+            let rows = document.querySelectorAll("tbody tr");
+
+            rows.forEach(function(row) {
+                let rowText = row.innerText.toLowerCase();
+                if (rowText.includes(searchText)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

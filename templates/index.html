@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students - Student Management System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                🎓 <span>EduManage</span> Portal
+            </a>
+            <ul class="nav-links">
+                <li class="nav-item"><a href="/" class="active">👨‍🎓 Students</a></li>
+                <li class="nav-item"><a href="/attendance">📅 Attendance</a></li>
+                <li class="nav-item"><a href="/marks">📊 Marks</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- Status Alerts -->
+        {% if saved_action == 'added' %}
+        <div class="alert-success">
+            ✅ Student added successfully!
+        </div>
+        {% elif saved_action == 'updated' %}
+        <div class="alert-success">
+            ✅ Student details updated successfully!
+        </div>
+        {% elif saved_action == 'deleted' %}
+        <div class="alert-success">
+            🗑️ Student deleted successfully!
+        </div>
+        {% endif %}
+
+        <!-- Header -->
+        <div>
+            <h1>🎓 Student Directory</h1>
+            <p class="subtitle">Manage and monitor student enrollments and records</p>
+        </div>
+
+        <!-- Metric Stat Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <strong>Total Students</strong>
+                    <span>{{ students|length }}</span>
+                </div>
+                <div class="stat-icon">👨‍🎓</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-info">
+                    <strong>Active Courses</strong>
+                    <span>{{ students|map(attribute=3)|unique|list|length }}</span>
+                </div>
+                <div class="stat-icon">📚</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-info">
+                    <strong>Registered Emails</strong>
+                    <span>{{ students|map(attribute=4)|unique|list|length }}</span>
+                </div>
+                <div class="stat-icon">📧</div>
+            </div>
+        </div>
+
+        <!-- Add Student Card -->
+        <div class="card">
+            <h2>➕ Add New Student</h2>
+            <form action="/add" method="POST">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name">Student Name</label>
+                        <input type="text" id="name" name="name" placeholder="e.g. John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="age" placeholder="e.g. 20" min="1" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="course">Course</label>
+                        <input type="text" id="course" name="course" placeholder="e.g. Computer Science" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="e.g. john@example.com" required>
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <button type="submit">➕ Add Student</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Student List Card -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <h2>📋 Enrolled Students ({{ students|length }})</h2>
+                <div style="flex: 1; max-width: 320px;">
+                    <input type="text" id="search" placeholder="🔍 Search by name, course, or email...">
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Age</th>
+                            <th>Course</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td><strong>#{{ student[0] }}</strong></td>
+                            <td><strong>{{ student[1] }}</strong></td>
+                            <td>{{ student[2] }}</td>
+                            <td><span class="badge badge-course">{{ student[3] }}</span></td>
+                            <td>{{ student[4] }}</td>
+                            <td>
+                                <div class="action-links">
+                                    <a class="edit-link" href="/edit/{{ student[0] }}">✏️ Edit</a>
+                                    <span style="color: #cbd5e1;">|</span>
+                                    <a class="delete" href="/delete/{{ student[0] }}" onclick="return confirm('Are you sure you want to delete {{ student[1] }}? This will also remove attendance and mark records.');">🗑️ Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 30px; color: #64748b;">
+                                No students found. Add a student above to get started.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.getElementById("search").addEventListener("keyup", function() {
+            let searchText = this.value.toLowerCase();
+            let rows = document.querySelectorAll("tbody tr");
+
+            rows.forEach(function(row) {
+                let rowText = row.innerText.toLowerCase();
+                if (rowText.includes(searchText)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
